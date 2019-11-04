@@ -1,0 +1,53 @@
+---
+- hosts: node11
+  vars:
+    output_file: "/tmp/{{ ansible_hostname }}"
+  tasks:
+    - name: create output file on ansible control node
+      file:
+        path: "{{ output_file }}"
+        state: touch
+      tags:
+        - output
+
+    - block:
+        - name: get system facts
+          setup:
+            filter: "*{{ item }}*"
+          with_items:
+            - dist
+            - ip
+            - kernel
+            - ansible_eth
+          register: system_facts
+
+        - name: write system facts to output file
+          blockinfile:
+            path: "{{ output_file }}"
+            block: "{{ system_facts | to_nice_json }}"
+            marker: "{mark} SYSTEM FACTS"
+      tags:
+        - system_facts
+
+    - block:
+        - name: Check if HugePages are enabled
+          shell: "{{ item }}"
+          with_items:
+            - cat /proc/sys/vm/nr_hugepages
+            - cat /proc/meminfo | grep Huge
+          register: HugePages
+
+        - name: write stdout to output file
+          blockinfile:
+            path: "{{ output_file }}"
+            block: |
+              "{{ item.cmd }}"
+              "{{ item.stdout }}"
+            marker: "\n{mark} HugePages {{ item.start }}\n"
+          with_items:
+            - "{{ HugePages.results }}"
+      tags:
+        - HugePages
+
+
+...

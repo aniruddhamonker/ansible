@@ -1,0 +1,22 @@
+---
+all:
+  hosts:
+    node11:
+  children:
+    control:
+      hosts:
+        node11:
+        node12:
+        node13:
+    compute:
+      hosts:
+        node14:
+        node15:
+        node16:
+    dpdk:
+      hosts:  
+        bcomp78:
+    opsk:
+      hosts:
+        opsk0:
+...
