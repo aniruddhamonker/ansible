@@ -53,14 +53,8 @@
           debug:
             msg: |
               CPU locks found for {{ ansible_hostname }}
-              {{ soft_locks.stdout }}
-          when: {{ soft_locks.stdout }} is regex("CPU.*stuck")
-
-        - name: No soft lockups found
-          debug:
-            msg: No CPU lockup messages found on {{ ansible_hostname }}
-          when: not ({{ soft_locks.stdout }} is regex("CPU.*stuck"))
-      tags: CPU_locks
+              "{{ soft_locks.stdout }}"
+          when: soft_locks.stdout is regex("CPU.*stuck")
 
     
 ...
