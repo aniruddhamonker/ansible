@@ -61,7 +61,7 @@
       tags: CpuSoftLocks 
 
     - block:
-        - name:  Print Kafka runtime parameters
+        - name: Check Kafka runtime parameters
           shell: >
             ps aux | 
             grep kafka | 
@@ -70,7 +70,7 @@
             awk '{print $1}'
           register: kafka_runtime
         - debug:
-            msg: "{{ kafka_runtime.stdout_lines | join('\n') }}"
+            msg: "{{ kafka_runtime.stdout.split('\n') }}"
       tags: KafkaRuntime
 
     
