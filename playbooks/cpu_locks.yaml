@@ -74,16 +74,16 @@
         - name: Collect Kafka Garbage Collector events
           shell: tail -"{{ tail_log_lines }}" "{{ kafka_log_dir }}"kafkaServer-gc.log
           register: kafka_gc_logs 
-      tags: Kafka
+      tags: kafka
 
     - name: Saving tasks output to "{{ output_file }}"
       blockinfile:
         path: "{{ output_file }}"
         block: "{{ item.stdout }}"
-        marker: "\n{mark} {{ item.cmd }} {{ item.start }}\n"
+        marker_begin: "\n BEGIN {{ item.cmd }} {{ item.start }}\n"
       with_items:
-        - kafka_runtime
-        - kafka_gc_logs
+        - "{{ kafka_runtime }}"
+        - "{{ kafka_gc_logs }}"
       tags: kafka 
    
 
