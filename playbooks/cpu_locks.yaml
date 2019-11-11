@@ -48,14 +48,4 @@
             - "{{ HugePages.results }}"
       tags:
         - HugePages
-    
-    - name: Check for Transparent Huge Pages(THP)
-      shell: "{{ item }}"
-      with_items:
-        - cat /sys/kernel/mm/transparent_hugepage/enabled
-        - grep AnonHuge /proc/meminfo
-      register: THP
-      tags: THP
-
-    
 ...
