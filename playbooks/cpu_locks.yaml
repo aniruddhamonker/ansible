@@ -29,25 +29,12 @@
       tags:
         - system_facts
 
-    - block:
-        - name: Check for Hugepages
-          shell: "{{ item }}"
-          with_items:
-            - cat /proc/sys/vm/nr_hugepages
-            - cat /proc/meminfo | grep Huge
-          register: HugePages
-
-        - name: write stdout to output file
-          blockinfile:
-            path: "{{ output_file }}"
-            block: |
-              "{{ item.cmd }}"
-              "{{ item.stdout }}"
-            marker: "\n{mark} HugePages {{ item.start }}\n"
-          with_items:
-            - "{{ HugePages.results }}"
-      tags:
-        - HugePages
+    - name: Check for Hugepages
+      shell: "{{ item }}"
+      with_items:
+        - cat /proc/sys/vm/nr_hugepages
+        - cat /proc/meminfo | grep Huge
+      register: HugePages 
     
     - name: Check for Transparent Huge Pages(THP)
       shell: "{{ item }}"
@@ -56,6 +43,24 @@
         - grep AnonHuge /proc/meminfo
       register: THP
       tags: THP
+
+    - block:
+        - name: Check for CPU Soft Lockup Errors
+          shell: sudo egrep -i 'soft.*lock' /var/log/syslog 
+          register: soft_locks
+        
+        - name: Print soft lockup messages if found
+          debug:
+            msg: |
+              CPU locks found for {{ ansible_hostname }}
+              {{ soft_locks.stdout }}
+          when: {{ soft_locks.stdout }} is regex("CPU.*stuck")
+
+        - name: No soft lockups found
+          debug:
+            msg: No CPU lockup messages found on {{ ansible_hostname }}
+          when: not ({{ soft_locks.stdout }} is regex("CPU.*stuck"))
+      tags: CPU_locks
 
     
 ...
