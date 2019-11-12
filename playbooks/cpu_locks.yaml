@@ -70,7 +70,7 @@
             awk '{print $1}'
           register: kafka_runtime
         - debug:
-            msg: "{{ kafka_runtime.stdout_lines | join("\n") }}"
+            msg: "{{ kafka_runtime.stdout_lines | join('\n') }}"
       tags: KafkaRuntime
 
     
