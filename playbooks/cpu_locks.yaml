@@ -49,8 +49,7 @@
           shell: sudo egrep -i 'soft.*lock' /var/log/syslog 
           register: soft_locks
         
-        - name: Print soft lockup messages if found
-          debug:
+        - debug:
             msg: |
               CPU locks found for {{ ansible_hostname }}
               "{{ soft_locks.stdout }}"
