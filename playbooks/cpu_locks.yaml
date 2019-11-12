@@ -54,6 +54,7 @@
               CPU locks found for {{ ansible_hostname }}
               "{{ soft_locks.stdout }}"
           when: soft_locks.stdout is regex("CPU.*stuck")
+      tags: CPU_locks
 
     
 ...
