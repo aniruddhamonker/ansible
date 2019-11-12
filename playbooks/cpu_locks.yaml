@@ -29,25 +29,12 @@
       tags:
         - system_facts
 
-    - block:
-        - name: Check for Hugepages
-          shell: "{{ item }}"
-          with_items:
-            - cat /proc/sys/vm/nr_hugepages
-            - cat /proc/meminfo | grep Huge
-          register: HugePages
-
-        - name: write stdout to output file
-          blockinfile:
-            path: "{{ output_file }}"
-            block: |
-              "{{ item.cmd }}"
-              "{{ item.stdout }}"
-            marker: "\n{mark} HugePages {{ item.start }}\n"
-          with_items:
-            - "{{ HugePages.results }}"
-      tags:
-        - HugePages
+    - name: Check for Hugepages
+      shell: "{{ item }}"
+      with_items:
+        - cat /proc/sys/vm/nr_hugepages
+        - cat /proc/meminfo | grep Huge
+      register: HugePages 
     
     - name: Check for Transparent Huge Pages(THP)
       shell: "{{ item }}"
