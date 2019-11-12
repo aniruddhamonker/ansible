@@ -8,7 +8,7 @@
         path: "{{ output_file }}"
         state: touch
       tags:
-        - output
+        - Output
 
     - block:
         - name: get system facts
@@ -20,29 +20,58 @@
             - kernel
             - ansible_eth
           register: system_facts
-
         - name: write system facts to output file
           blockinfile:
             path: "{{ output_file }}"
             block: "{{ system_facts | to_nice_json }}"
             marker: "{mark} SYSTEM FACTS"
       tags:
-        - system_facts
+        - SystemFacts
 
-    - name: Check for Hugepages
-      shell: "{{ item }}"
-      with_items:
-        - cat /proc/sys/vm/nr_hugepages
-        - cat /proc/meminfo | grep Huge
-      register: HugePages 
+    - block:
+        - name: Check for Hugepages
+          shell: "{{ item }}"
+          with_items:
+            - cat /proc/sys/vm/nr_hugepages
+            - cat /proc/meminfo | grep Huge
+          register: HugePages
+          tags: HugePages
+        - name: Check for Transparent Huge Pages(THP)
+          shell: "{{ item }}"
+          with_items:
+            - cat /sys/kernel/mm/transparent_hugepage/enabled
+            - grep AnonHuge /proc/meminfo
+            - >
+              grep -e AnonHugePages /proc/*/smaps | 
+              awk '{ if($2>4) print $0} ' | 
+              awk -F "/" '{print $0; system("ps -fp" $3)}'
+          register: THP
+          tags: Thp
     
-    - name: Check for Transparent Huge Pages(THP)
-      shell: "{{ item }}"
-      with_items:
-        - cat /sys/kernel/mm/transparent_hugepage/enabled
-        - grep AnonHuge /proc/meminfo
-      register: THP
-      tags: THP
+    - block:
+        - name: Check for CPU stuck events in the syslog
+          shell: "egrep -i 'soft.*lock' /var/log/syslog"
+          register: cpu_soft_lock
+        - name: Print errors if any soft lockup messages are found
+          debug:
+            msg: |
+              CPU stuck logs reported on {{ ansible_hostname }}
+              "{{ cpu_soft_lock.stdout }}"
+          when: cpu_soft_lock.stdout is regex("CPU.*stuck")
+      tags: CpuSoftLocks 
+
+    - block:
+        - name:  Print Kafka runtime parameters
+          shell: >
+            ps aux | 
+            grep kafka | 
+            grep -v grep | 
+            awk -F'-XX' '{for(i=1; i<=NF; i++)print $i}' | 
+            awk '{print $1}'
+          register: kafka_runtime
+        - debug:
+            msg: "{{ kafka_runtime.stdout }}"
+      tags: KafkaRuntime
 
     
 ...
