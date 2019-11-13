@@ -69,7 +69,7 @@
             awk -F'-XX' '{for(i=1; i<=NF; i++)print $i}' | 
             awk '{print $1}'
           register: kafka_runtime
-      tags: KafkaRuntime
-
-    
+        - name: Collect Kafka Garbage Collector events
+          shell
+      tags: KafkaRuntime  
 ...
