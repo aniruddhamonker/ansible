@@ -2,6 +2,8 @@
 - hosts: node11
   vars:
     output_file: "/tmp/{{ ansible_hostname }}"
+    tail_log_lines: 300
+    kafka_log_dir: "/var/log/kafka/"
   tasks:
     - name: create output file on ansible control node
       file:
@@ -70,6 +72,18 @@
             awk '{print $1}'
           register: kafka_runtime
         - name: Collect Kafka Garbage Collector events
-          shell
-      tags: KafkaRuntime  
-...
+          shell: tail -"{{ tail_log_lines }}" "{{ kafka_log_dir }}"kafkaServer-gc.log
+          register: kafka_gc_logs 
+      tags: Kafka
+
+    - name: Saving tasks output to /tmp/"{{ output_file }}"
+      blockinfile:
+        path: "{{ output_file }}"
+        block: "{{ item.stdout }}"
+        marker: "\n{mark} {{ item.cmd }} {{ item.start }}\n"
+      with_items:
+        - kafka_runtime
+        - kafka_gc_logs
+      tags: kafka 
+   
+
