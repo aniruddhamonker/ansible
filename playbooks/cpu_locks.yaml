@@ -80,7 +80,8 @@
       blockinfile:
         path: "{{ output_file }}"
         block: "{{ item.stdout }}"
-        marker_begin: "\n BEGIN {{ item.cmd }} {{ item.start }}\n"
+        marker: "#{mark}"
+        marker_begin: "\nBEGIN \n{{ item.cmd }}\ntime:{{ item.start }}\n"
       with_items:
         - "{{ huge_pages.results }}"
         - "{{ thp.results }}"
