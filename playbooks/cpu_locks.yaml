@@ -36,7 +36,7 @@
           with_items:
             - cat /proc/sys/vm/nr_hugepages
             - cat /proc/meminfo | grep Huge
-          register: HugePages
+          register: huge_pages
           tags: HugePages
         - name: Check for Transparent Huge Pages(THP)
           shell: "{{ item }}"
@@ -47,7 +47,7 @@
               grep -e AnonHugePages /proc/*/smaps | 
               awk '{ if($2>4) print $0} ' | 
               awk -F "/" '{print $0; system("ps -fp" $3)}'
-          register: THP
+          register: thp
           tags: Thp
     
     - block:
@@ -60,7 +60,7 @@
               CPU stuck logs reported on {{ ansible_hostname }}
               "{{ cpu_soft_lock.stdout }}"
           when: cpu_soft_lock.stdout is regex("CPU.*stuck")
-      tags: CpuSoftLocks 
+      tags: CpuSoftLocks
 
     - block:
         - name: Check Kafka runtime parameters
@@ -82,6 +82,8 @@
         block: "{{ item.stdout }}"
         marker_begin: "\n BEGIN {{ item.cmd }} {{ item.start }}\n"
       with_items:
+        - "{{ huge_pages.results }}"
+        - "{{ thp.results }}"
         - "{{ kafka_runtime }}"
         - "{{ kafka_gc_logs }}"
       tags: kafka 
