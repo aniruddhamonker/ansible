@@ -76,7 +76,7 @@
           register: kafka_gc_logs 
       tags: Kafka
 
-    - name: Saving tasks output to /tmp/"{{ output_file }}"
+    - name: Saving tasks output to "{{ output_file }}"
       blockinfile:
         path: "{{ output_file }}"
         block: "{{ item.stdout }}"
